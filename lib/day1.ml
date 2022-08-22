@@ -1,13 +1,13 @@
 open! Core
 open! Async
 
+let rec fold2 ~init ~f = function
+  | a :: b :: tl -> fold2 ~init:(f init a b) ~f (b :: tl)
+  | _ -> init
+
 let count_increases l =
-  let rec sum acc = function
-    | f :: s :: tl ->
-        if s > f then sum (acc + 1) (s :: tl) else sum acc (s :: tl)
-    | _ -> acc
-  in
-  sum 0 l
+  let f acc a b = if b > a then acc + 1 else acc in
+  fold2 ~init:0 ~f l
 
 let%expect_test "zero for empty" =
   count_increases [] |> Int.to_string |> print_endline;
@@ -34,13 +34,17 @@ let day1a ls =
   List.map ls ~f:Int.of_string
   |> count_increases |> Int.to_string |> print_endline
 
-let sum3 l =
-  let rec sum acc = function
-    | f :: s :: t :: tl -> sum ((f + s + t) :: acc) (s :: t :: tl)
-    | _ -> acc
-  in
-  sum [] l |> List.rev
+let rec fold3 ~init ~f = function
+  | a :: b :: c :: tl -> fold3 ~init:(f init a b c) ~f (b :: c :: tl)
+  | _ -> init
+
+let count_triple_increases l =
+  (* build sums in reverse order... *)
+  let add acc a b c = (a + b + c) :: acc in
+  (* ...then count decreases instead of increases *)
+  let count_dec acc a b = if a > b then acc + 1 else acc in
+  fold3 ~init:[] ~f:add l |> fold2 ~init:0 ~f:count_dec
 
 let day1b ls =
   List.map ls ~f:Int.of_string
-  |> sum3 |> count_increases |> Int.to_string |> print_endline
+  |> count_triple_increases |> Int.to_string |> print_endline
