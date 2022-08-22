@@ -1,2 +1,5 @@
 (library
- (name aoc21ocaml))
+ (name aoc21ocaml)
+ (inline_tests)
+ (libraries async core ppx_expect)
+ (preprocess (pps ppx_expect)))

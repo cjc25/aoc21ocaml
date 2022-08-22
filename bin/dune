@@ -1,3 +1,4 @@
 (executable
  (name main)
- (libraries aoc21ocaml))
+ (libraries aoc21ocaml core async core_unix.command_unix ppx_let)
+ (preprocess (pps ppx_let)))
