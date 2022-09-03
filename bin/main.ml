@@ -2,9 +2,10 @@ open! Core
 open! Async
 open Aoc21ocaml
 
-type day = Day1a | Day1b
+type day = Day1a | Day1b | Day2a
 
-let daynames = String.Map.of_alist_exn [ ("1a", Day1a); ("1b", Day1b) ]
+let daynames =
+  String.Map.of_alist_exn [ ("1a", Day1a); ("1b", Day1b); ("2a", Day2a) ]
 
 let runday b = function
   | Day1a ->
@@ -15,6 +16,10 @@ let runday b = function
       let f = Filename.concat b "day1" in
       let%map lines = Reader.file_lines f in
       Day1.day1b lines
+  | Day2a ->
+      let f = Filename.concat b "day2" in
+      let%map lines = Reader.file_lines f in
+      Day2.day2a lines
 
 let day_arg =
   Command.Arg_type.create (fun s ->
