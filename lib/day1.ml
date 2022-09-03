@@ -9,30 +9,17 @@ let count_increases l =
   let f acc a b = if b > a then acc + 1 else acc in
   fold2 ~init:0 ~f l
 
-let%expect_test "zero for empty" =
-  count_increases [] |> Int.to_string |> print_endline;
-  return [%expect "0"]
-
-let sample = {|199
-200
-208
-210
-200
-207
-240
-269
-260
-263|}
-
-let to_int_list_exn l = String.split l ~on:'\n' |> List.map ~f:Int.of_string
-
-let%expect_test "sample" =
-  to_int_list_exn sample |> count_increases |> Int.to_string |> print_endline;
-  return [%expect "7"]
-
 let day1a ls =
   List.map ls ~f:Int.of_string
   |> count_increases |> Int.to_string |> print_endline
+
+let%expect_test "zero for empty" =
+  day1a [];
+  return [%expect "0"]
+
+let%expect_test "sample" =
+  day1a [ "199"; "200"; "208"; "210"; "200"; "207"; "240"; "269"; "260"; "263" ];
+  return [%expect "7"]
 
 let rec fold3 ~init ~f = function
   | a :: b :: c :: tl -> fold3 ~init:(f init a b c) ~f (b :: c :: tl)
