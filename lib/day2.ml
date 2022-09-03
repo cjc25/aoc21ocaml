@@ -15,15 +15,14 @@ let line_to_action l =
   | [ a; b ] -> stringpair_to_action a b
   | _ -> failwithf "unexpected line %s" l ()
 
-let step (horiz, depth) = function
+let step (horiz, depth) l =
+  match line_to_action l with
   | Forward f -> (horiz + f, depth)
   | Up u -> (horiz, depth - u)
   | Down d -> (horiz, depth + d)
 
 let day2a ls =
-  let horiz, depth =
-    List.map ls ~f:line_to_action |> List.fold ~init:(0, 0) ~f:step
-  in
+  let horiz, depth = List.fold ls ~init:(0, 0) ~f:step in
   horiz * depth |> Int.to_string |> print_endline
 
 let%expect_test "2a sample" =
