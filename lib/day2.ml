@@ -23,13 +23,13 @@ let step2a (horiz, depth) l =
 
 let day2a ls =
   let horiz, depth = List.fold ls ~init:(0, 0) ~f:step2a in
-  horiz * depth |> Int.to_string |> print_endline
+  horiz * depth
 
 let sample =
   [ "forward 5"; "down 5"; "forward 8"; "up 3"; "down 8"; "forward 2" ]
 
 let%expect_test "2a sample" =
-  day2a sample;
+  day2a sample |> Int.to_string |> print_endline;
   [%expect {| 150 |}]
 
 let step2b (horiz, depth, aim) l =
@@ -40,8 +40,8 @@ let step2b (horiz, depth, aim) l =
 
 let day2b ls =
   let horiz, depth, _ = List.fold ls ~init:(0, 0, 0) ~f:step2b in
-  horiz * depth |> Int.to_string |> print_endline
+  horiz * depth
 
 let%expect_test "2b sample" =
-  day2b sample;
+  day2b sample |> Int.to_string |> print_endline;
   [%expect {| 900 |}]

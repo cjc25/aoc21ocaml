@@ -1,4 +1,5 @@
 open! Core
+open! Core_bench
 open! Async
 open Aoc21ocaml
 
@@ -20,11 +21,11 @@ let runday b = function
   | Day2a ->
       let f = Filename.concat b "day2" in
       let%map lines = Reader.file_lines f in
-      Day2.day2a lines
+      Day2.day2a lines |> Int.to_string |> print_endline
   | Day2b ->
       let f = Filename.concat b "day2" in
       let%map lines = Reader.file_lines f in
-      Day2.day2b lines
+      Day2.day2b lines |> Int.to_string |> print_endline
 
 let day_arg =
   Command.Arg_type.create (fun s ->
@@ -41,8 +42,22 @@ let base_dir_param =
   flag ~doc:"input files directory" "input-dir"
     (optional_with_default "inputs" string)
 
-let () =
+let aoc_cmd =
   Command.async ~summary:"run advent of code!"
     (let%map_open.Command d = day_param and base_dir = base_dir_param in
      fun () -> Deferred.List.iter d ~f:(fun d -> runday base_dir d))
+
+(** make_benchmark infile f returns a benchmark for [Bench.Test.create_with_initialization] *)
+let make_benchmark ~name infile f =
+  Bench.Test.create_with_initialization ~name (fun `init ->
+      let lines = Stdio.In_channel.read_lines infile in
+      fun () -> f lines)
+
+let d2a_bm () = make_benchmark ~name:"d2a" "inputs/day2" Day2.day2a
+let d2b_bm () = make_benchmark ~name:"d2b" "inputs/day2" Day2.day2b
+let d2_bm_command = Bench.make_command [ d2a_bm (); d2b_bm () ]
+
+let () =
+  Command.group ~summary:"Run once or benchmark the advent of code"
+    [ ("aoc", aoc_cmd); ("bm", d2_bm_command) ]
   |> Command_unix.run

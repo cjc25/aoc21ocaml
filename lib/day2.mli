@@ -1,2 +1,2 @@
-val day2a : string list -> unit
-val day2b : string list -> unit
+val day2a : string list -> int
+val day2b : string list -> int
