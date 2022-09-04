@@ -30,3 +30,5 @@ _opam/
 
 # Inputs can be ignored.
 inputs/
+
+.vscode/
