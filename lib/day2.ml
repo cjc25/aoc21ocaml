@@ -15,16 +15,33 @@ let line_to_action l =
   | [ a; b ] -> stringpair_to_action a b
   | _ -> failwithf "unexpected line %s" l ()
 
-let step (horiz, depth) l =
+let step2a (horiz, depth) l =
   match line_to_action l with
   | Forward f -> (horiz + f, depth)
   | Up u -> (horiz, depth - u)
   | Down d -> (horiz, depth + d)
 
 let day2a ls =
-  let horiz, depth = List.fold ls ~init:(0, 0) ~f:step in
+  let horiz, depth = List.fold ls ~init:(0, 0) ~f:step2a in
   horiz * depth |> Int.to_string |> print_endline
 
+let sample =
+  [ "forward 5"; "down 5"; "forward 8"; "up 3"; "down 8"; "forward 2" ]
+
 let%expect_test "2a sample" =
-  day2a [ "forward 5"; "down 5"; "forward 8"; "up 3"; "down 8"; "forward 2" ];
+  day2a sample;
   [%expect {| 150 |}]
+
+let step2b (horiz, depth, aim) l =
+  match line_to_action l with
+  | Forward f -> (horiz + f, depth + (f * aim), aim)
+  | Up u -> (horiz, depth, aim - u)
+  | Down d -> (horiz, depth, aim + d)
+
+let day2b ls =
+  let horiz, depth, _ = List.fold ls ~init:(0, 0, 0) ~f:step2b in
+  horiz * depth |> Int.to_string |> print_endline
+
+let%expect_test "2b sample" =
+  day2b sample;
+  [%expect {| 900 |}]
