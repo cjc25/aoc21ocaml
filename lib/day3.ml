@@ -42,32 +42,31 @@ let%expect_test "sample a" =
   day3a sample |> Int.to_string |> print_endline;
   [%expect {| 198 |}]
 
-let rec ox_rating line_ct index lines =
-  if line_ct = 1 then "0b" ^ List.hd_exn lines |> Int.of_string
+let rec partition_ones_zeroes index l ~f =
+  let line_ct = List.length l in
+  if line_ct = 1 then List.hd_exn l
   else
     let ones, zeroes =
-      List.partition_tf lines ~f:(fun l -> Char.O.(String.get l index = '1'))
+      List.partition_tf l ~f:(fun s -> Char.O.(String.get s index = '1'))
     in
-    let onelen = List.length ones in
-    let zerolen = List.length zeroes in
-    if onelen * 2 >= line_ct then ox_rating onelen (index + 1) ones
-    else ox_rating zerolen (index + 1) zeroes
+    let newl = f line_ct ones zeroes in
+    partition_ones_zeroes (index + 1) newl ~f
 
-let rec co_rating line_ct index lines =
-  if line_ct = 1 then "0b" ^ List.hd_exn lines |> Int.of_string
-  else
-    let ones, zeroes =
-      List.partition_tf lines ~f:(fun l -> Char.O.(String.get l index = '1'))
-    in
-    let onelen = List.length ones in
-    let zerolen = List.length zeroes in
-    if onelen * 2 >= line_ct then co_rating zerolen (index + 1) zeroes
-    else co_rating onelen (index + 1) ones
+let ox_rating lines =
+  let f line_ct ones zeroes =
+    if 2 * List.length ones >= line_ct then ones else zeroes
+  in
+  "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
+
+let co_rating lines =
+  let f line_ct ones zeroes =
+    if 2 * List.length ones >= line_ct then zeroes else ones
+  in
+  "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
 
 let day3b lines =
-  let total_ct = List.length lines in
-  let ox = ox_rating total_ct 0 lines in
-  let co = co_rating total_ct 0 lines in
+  let ox = ox_rating lines in
+  let co = co_rating lines in
   ox * co
 
 let%expect_test "sample b" =
