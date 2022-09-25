@@ -3,11 +3,18 @@ open! Core_bench
 open! Async
 open Aoc21ocaml
 
-type day = Day1a | Day1b | Day2a | Day2b
+type day = Day1a | Day1b | Day2a | Day2b | Day3a | Day3b
 
 let daynames =
   String.Map.of_alist_exn
-    [ ("1a", Day1a); ("1b", Day1b); ("2a", Day2a); ("2b", Day2b) ]
+    [
+      ("1a", Day1a);
+      ("1b", Day1b);
+      ("2a", Day2a);
+      ("2b", Day2b);
+      ("3a", Day3a);
+      ("3b", Day3b);
+    ]
 
 let runday b = function
   | Day1a ->
@@ -26,6 +33,14 @@ let runday b = function
       let f = Filename.concat b "day2" in
       let%map lines = Reader.file_lines f in
       Day2.day2b lines |> Int.to_string |> print_endline
+  | Day3a ->
+      let f = Filename.concat b "day3" in
+      let%map lines = Reader.file_lines f in
+      Day3.day3a lines |> Int.to_string |> print_endline
+  | Day3b ->
+      let f = Filename.concat b "day3" in
+      let%map lines = Reader.file_lines f in
+      Day3.day3b lines |> Int.to_string |> print_endline
 
 let day_arg =
   Command.Arg_type.create (fun s ->
