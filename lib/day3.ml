@@ -42,29 +42,39 @@ let%expect_test "sample a" =
   day3a sample |> Int.to_string |> print_endline;
   [%expect {| 198 |}]
 
+let partition_tf l ~f =
+  let l = fst l in
+  List.fold l
+    ~init:(([], 0), ([], 0))
+    ~f:(fun (ts, fs) elem ->
+      match f elem with
+      | true -> ((elem :: fst ts, 1 + snd ts), fs)
+      | false -> (ts, (elem :: fst fs, 1 + snd fs)))
+
 let rec partition_ones_zeroes index l ~f =
-  let line_ct = List.length l in
-  if line_ct = 1 then List.hd_exn l
+  let line_ct = snd l in
+  if line_ct = 1 then fst l |> List.hd_exn
   else
     let ones, zeroes =
-      List.partition_tf l ~f:(fun s -> Char.O.(String.get s index = '1'))
+      partition_tf l ~f:(fun s -> Char.O.(String.get s index = '1'))
     in
     let newl = f line_ct ones zeroes in
     partition_ones_zeroes (index + 1) newl ~f
 
 let ox_rating lines =
   let f line_ct ones zeroes =
-    if 2 * List.length ones >= line_ct then ones else zeroes
+    if 2 * snd ones >= line_ct then ones else zeroes
   in
   "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
 
 let co_rating lines =
   let f line_ct ones zeroes =
-    if 2 * List.length ones >= line_ct then zeroes else ones
+    if 2 * snd ones >= line_ct then zeroes else ones
   in
   "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
 
 let day3b lines =
+  let lines = (lines, List.length lines) in
   let ox = ox_rating lines in
   let co = co_rating lines in
   ox * co
