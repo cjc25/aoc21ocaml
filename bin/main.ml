@@ -68,11 +68,28 @@ let make_benchmark ~name infile f =
       let lines = Stdio.In_channel.read_lines infile in
       fun () -> f lines)
 
-let d2a_bm () = make_benchmark ~name:"d2a" "inputs/day2" Day2.day2a
-let d2b_bm () = make_benchmark ~name:"d2b" "inputs/day2" Day2.day2b
-let d2_bm_command = Bench.make_command [ d2a_bm (); d2b_bm () ]
+let bm_of_day base_dir =
+  let fn name = Filename.concat base_dir name in
+  function
+  | Day2a -> make_benchmark ~name:"d2a" (fn "day2") Day2.day2a
+  | Day2b -> make_benchmark ~name:"d2b" (fn "day2") Day2.day2b
+  | Day3a -> make_benchmark ~name:"d3a" (fn "day3") Day3.day3a
+  | Day3b -> make_benchmark ~name:"d3b" (fn "day3") Day3.day3b
+  | _ -> failwith "day not supported for benchmarking"
+
+let display_config =
+  Bench.Display_config.create ~display:Ascii_table.Display.column_titles
+    ~ascii_table:true ()
+
+let bm_cmd =
+  Command.async ~summary:"benchmark advent of code days"
+    (let%map_open.Command d = day_param and base_dir = base_dir_param in
+     fun () ->
+       List.map d ~f:(bm_of_day base_dir)
+       |> Bench.bench ~display_config
+       |> return)
 
 let () =
   Command.group ~summary:"Run once or benchmark the advent of code"
-    [ ("aoc", aoc_cmd); ("bm", d2_bm_command) ]
+    [ ("aoc", aoc_cmd); ("bm", bm_cmd) ]
   |> Command_unix.run
