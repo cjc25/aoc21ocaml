@@ -42,41 +42,44 @@ let%expect_test "sample a" =
   day3a sample |> Int.to_string |> print_endline;
   [%expect {| 198 |}]
 
-let partition_tf l ~f =
-  let l = fst l in
-  List.fold l
-    ~init:(([], 0), ([], 0))
-    ~f:(fun (ts, fs) elem ->
-      match f elem with
-      | true -> ((elem :: fst ts, 1 + snd ts), fs)
-      | false -> (ts, (elem :: fst fs, 1 + snd fs)))
+let partition_inplace lines index start end_ =
+  let start = ref start and end_ = ref end_ in
+  while !start < !end_ do
+    match String.get lines.(!start) index with
+    | '0' -> incr start
+    | '1' ->
+        decr end_;
+        while Char.O.(String.get lines.(!end_) index = '1') && !start < !end_ do
+          decr end_
+        done;
+        Array.swap lines !start !end_
+    | c -> failwithf "unexpected char %c" c ()
+  done;
+  !start
 
-let rec partition_ones_zeroes index l ~f =
-  let line_ct = snd l in
-  if line_ct = 1 then fst l |> List.hd_exn
+let rec rating use_zeroes_fn lines index start end_ =
+  let len = end_ - start in
+  if len = 1 then "0b" ^ lines.(start) |> Int.of_string
   else
-    let ones, zeroes =
-      partition_tf l ~f:(fun s -> Char.O.(String.get s index = '1'))
-    in
-    let newl = f line_ct ones zeroes in
-    partition_ones_zeroes (index + 1) newl ~f
+    let first_one = partition_inplace lines index start end_ in
+    if use_zeroes_fn (2 * (first_one - start)) len then
+      rating use_zeroes_fn lines (index + 1) start first_one
+    else rating use_zeroes_fn lines (index + 1) first_one end_
 
-let ox_rating lines =
-  let f line_ct ones zeroes =
-    if 2 * snd ones >= line_ct then ones else zeroes
-  in
-  "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
-
-let co_rating lines =
-  let f line_ct ones zeroes =
-    if 2 * snd ones >= line_ct then zeroes else ones
-  in
-  "0b" ^ partition_ones_zeroes 0 lines ~f |> Int.of_string
+let ox_rating lines start end_ = rating Int.( > ) lines 1 start end_
+let co_rating lines start end_ = rating Int.( <= ) lines 1 start end_
 
 let day3b lines =
-  let lines = (lines, List.length lines) in
-  let ox = ox_rating lines in
-  let co = co_rating lines in
+  (* Do the first partitioning here, since ox and co will start on separate
+     sides. *)
+  let lines = Array.of_list lines in
+  let line_ct = Array.length lines in
+  let first_one = partition_inplace lines 0 0 line_ct in
+  let ox, co =
+    if 2 * first_one > line_ct then
+      (ox_rating lines 0 first_one, co_rating lines first_one line_ct)
+    else (ox_rating lines first_one line_ct, co_rating lines 0 first_one)
+  in
   ox * co
 
 let%expect_test "sample b" =
