@@ -16,8 +16,8 @@ let board_of_section section =
 let score_board rep =
   List.fold rep ~init:0 ~f:(fun init entries ->
       List.fold entries ~init ~f:(fun score -> function
-          | { num = _; marked = true } -> score
-          | { num; marked = false } -> score + num))
+        | { num = _; marked = true } -> score
+        | { num; marked = false } -> score + num))
 
 (** The error case is when a board has won *)
 let mark_board (rows, cols) draw =
@@ -79,3 +79,26 @@ let day4a ls =
 let%expect_test "a sample" =
   day4a sample |> printf "%d";
   [%expect {| 4512 |}]
+
+let day4b ls =
+  let sections = Input.to_sections ls in
+  let draws =
+    List.hd_exn sections |> List.hd_exn |> String.split ~on:','
+    |> List.map ~f:Int.of_string
+  in
+  let init = List.tl_exn sections |> List.map ~f:board_of_section in
+  List.fold_until draws
+    ~finish:(fun _ -> failwith "no winner!")
+    ~init
+    ~f:(fun boards draw ->
+      match
+        List.map boards ~f:(fun board -> mark_board board draw)
+        |> List.partition_map ~f:Result.to_either
+      with
+      | [], [ winner ] -> Stop winner
+      | [], _ -> failwith "unexpectedly not one final winner!"
+      | remaining, _ -> Continue remaining)
+
+let%expect_test "b sample" =
+  day4b sample |> printf "%d";
+  [%expect {| 1924 |}]
