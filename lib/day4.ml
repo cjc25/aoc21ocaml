@@ -31,10 +31,10 @@ let mark_board (rows, cols) draw =
         (entry_all_ok || entries_ok, entries))
   in
   let won, rows = mark_rep rows in
-  if won then Error (draw * score_board rows)
+  if won then Second (draw * score_board rows)
   else
     let won, cols = mark_rep cols in
-    if won then Error (draw * score_board cols) else Ok (rows, cols)
+    if won then Second (draw * score_board cols) else First (rows, cols)
 
 let sample =
   String.split_lines
@@ -71,10 +71,11 @@ let day4a ls =
     ~init
     ~f:(fun boards draw ->
       match
-        List.map boards ~f:(fun board -> mark_board board draw) |> Result.all
+        List.partition_map boards ~f:(fun board -> mark_board board draw)
       with
-      | Ok boards -> Continue boards
-      | Error score -> Stop score)
+      | _, [ winner ] -> Stop winner
+      | remaining, [] -> Continue remaining
+      | _, _ -> failwith "unexpectedly multiple winners!")
 
 let%expect_test "a sample" =
   day4a sample |> printf "%d";
@@ -92,8 +93,7 @@ let day4b ls =
     ~init
     ~f:(fun boards draw ->
       match
-        List.map boards ~f:(fun board -> mark_board board draw)
-        |> List.partition_map ~f:Result.to_either
+        List.partition_map boards ~f:(fun board -> mark_board board draw)
       with
       | [], [ winner ] -> Stop winner
       | [], _ -> failwith "unexpectedly not one final winner!"
