@@ -17,3 +17,7 @@ let to_sections lines =
 let to_tokens line =
   String.split ~on:' ' line
   |> List.filter ~f:(fun tok -> String.is_empty tok |> not)
+
+let split_on_string s ~sep =
+  let p = String.Search_pattern.create sep in
+  String.Search_pattern.split_on p s
