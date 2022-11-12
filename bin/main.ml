@@ -3,60 +3,56 @@ open! Core_bench
 open! Async
 open Aoc21ocaml
 
-type day = Day1a | Day1b | Day2a | Day2b | Day3a | Day3b | Day4a | Day4b
+module type Day = sig
+  type result
 
-let daynames =
-  String.Map.of_alist_exn
+  val parta : string list -> result
+  val partb : string list -> result
+end
+
+module type Printing_day = sig
+  val parta : string list -> unit
+  val partb : string list -> unit
+end
+
+module Of_unit_day (D : Day with type result = unit) : Printing_day = struct
+  let parta = D.parta
+  let partb = D.partb
+end
+
+module Of_int_day (D : Day with type result = int) : Printing_day = struct
+  let parta s = D.parta s |> Int.to_string |> print_endline
+  let partb s = D.partb s |> Int.to_string |> print_endline
+end
+
+let daymods =
+  Int.Map.of_alist_exn
     [
-      ("1a", Day1a);
-      ("1b", Day1b);
-      ("2a", Day2a);
-      ("2b", Day2b);
-      ("3a", Day3a);
-      ("3b", Day3b);
-      ("4a", Day4a);
-      ("4b", Day4b);
+      (1, ((module Day1 : Day), (module Of_unit_day (Day1) : Printing_day)));
+      (2, ((module Day2), (module Of_int_day (Day2))));
+      (3, ((module Day3), (module Of_int_day (Day3))));
+      (4, ((module Day4), (module Of_int_day (Day4))));
     ]
 
-let runday b = function
-  | Day1a ->
-      let f = Filename.concat b "day1" in
-      let%map lines = Reader.file_lines f in
-      Day1.day1a lines
-  | Day1b ->
-      let f = Filename.concat b "day1" in
-      let%map lines = Reader.file_lines f in
-      Day1.day1b lines
-  | Day2a ->
-      let f = Filename.concat b "day2" in
-      let%map lines = Reader.file_lines f in
-      Day2.day2a lines |> Int.to_string |> print_endline
-  | Day2b ->
-      let f = Filename.concat b "day2" in
-      let%map lines = Reader.file_lines f in
-      Day2.day2b lines |> Int.to_string |> print_endline
-  | Day3a ->
-      let f = Filename.concat b "day3" in
-      let%map lines = Reader.file_lines f in
-      Day3.day3a lines |> Int.to_string |> print_endline
-  | Day3b ->
-      let f = Filename.concat b "day3" in
-      let%map lines = Reader.file_lines f in
-      Day3.day3b lines |> Int.to_string |> print_endline
-  | Day4a ->
-      let f = Filename.concat b "day4" in
-      let%map lines = Reader.file_lines f in
-      Day4.day4a lines |> Int.to_string |> print_endline
-  | Day4b ->
-      let f = Filename.concat b "day4" in
-      let%map lines = Reader.file_lines f in
-      Day4.day4b lines |> Int.to_string |> print_endline
+type day_to_run = {
+  day : (module Day);
+  printing_day : (module Printing_day);
+  infile : string;
+  part : [ `A | `B ];
+}
 
 let day_arg =
   Command.Arg_type.create (fun s ->
-      match Map.find daynames s with
-      | Some d -> d
-      | None -> failwithf "bad day %s" s ())
+      let daystr = String.length s - 1 |> String.prefix s in
+      let day, printing_day = Int.of_string daystr |> Map.find_exn daymods in
+      let infile = "day" ^ daystr in
+      let part =
+        match String.suffix s 1 with
+        | "a" | "A" -> `A
+        | "b" | "B" -> `B
+        | _ -> failwithf "bad day arg %s" s ()
+      in
+      { day; printing_day; infile; part })
 
 let day_param =
   let open Command.Param in
@@ -67,25 +63,25 @@ let base_dir_param =
   flag ~doc:"input files directory" "input-dir"
     (optional_with_default "inputs" string)
 
+let runday b { day = _; printing_day = (module D); infile; part } =
+  let f = Filename.concat b infile in
+  let%map lines = Reader.file_lines f in
+  match part with `A -> D.parta lines | `B -> D.partb lines
+
 let aoc_cmd =
   Command.async ~summary:"run advent of code!"
     (let%map_open.Command d = day_param and base_dir = base_dir_param in
      fun () -> Deferred.List.iter d ~f:(fun d -> runday base_dir d))
 
-(** make_benchmark infile f returns a benchmark for [Bench.Test.create_with_initialization] *)
-let make_benchmark ~name infile f =
+(** [bm_of_day basedir day_to_run] returns a benchmark for [Bench.Test.create_with_initialization] *)
+let make_benchmark b { day = (module D); printing_day = _; infile; part } =
+  let partstr = match part with `A -> "a" | `B -> "b" in
+  let name = infile ^ partstr in
+  let f = match part with `A -> D.parta | `B -> D.partb in
   Bench.Test.create_with_initialization ~name (fun `init ->
+      let infile = Filename.concat b infile in
       let lines = Stdio.In_channel.read_lines infile in
       fun () -> f lines)
-
-let bm_of_day base_dir =
-  let fn name = Filename.concat base_dir name in
-  function
-  | Day2a -> make_benchmark ~name:"d2a" (fn "day2") Day2.day2a
-  | Day2b -> make_benchmark ~name:"d2b" (fn "day2") Day2.day2b
-  | Day3a -> make_benchmark ~name:"d3a" (fn "day3") Day3.day3a
-  | Day3b -> make_benchmark ~name:"d3b" (fn "day3") Day3.day3b
-  | _ -> failwith "day not supported for benchmarking"
 
 let display_config =
   Bench.Display_config.create ~display:Ascii_table.Display.column_titles
@@ -95,7 +91,7 @@ let bm_cmd =
   Command.async ~summary:"benchmark advent of code days"
     (let%map_open.Command d = day_param and base_dir = base_dir_param in
      fun () ->
-       List.map d ~f:(bm_of_day base_dir)
+       List.map d ~f:(make_benchmark base_dir)
        |> Bench.bench ~display_config
        |> return)
 

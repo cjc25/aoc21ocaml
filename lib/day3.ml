@@ -1,8 +1,10 @@
 open Core
 
+type result = int
+
 let bitct s = String.length s
 
-let day3a lines =
+let parta lines =
   (* All lines have the same length *)
   let bits = List.hd_exn lines |> bitct in
   let ones_seen = Array.create ~len:bits 0 in
@@ -39,7 +41,7 @@ let sample =
   |> String.split ~on:'\n'
 
 let%expect_test "sample a" =
-  day3a sample |> Int.to_string |> print_endline;
+  parta sample |> Int.to_string |> print_endline;
   [%expect {| 198 |}]
 
 let partition_inplace lines index start end_ =
@@ -69,7 +71,7 @@ let rec rating use_zeroes_fn lines index start end_ =
 let ox_rating lines start end_ = rating Int.( > ) lines 1 start end_
 let co_rating lines start end_ = rating Int.( <= ) lines 1 start end_
 
-let day3b lines =
+let partb lines =
   (* Do the first partitioning here, since ox and co will start on separate
      sides. *)
   let lines = Array.of_list lines in
@@ -83,5 +85,5 @@ let day3b lines =
   ox * co
 
 let%expect_test "sample b" =
-  day3b sample |> Int.to_string |> print_endline;
+  partb sample |> Int.to_string |> print_endline;
   [%expect {| 230 |}]

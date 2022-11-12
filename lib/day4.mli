@@ -1,2 +1,4 @@
-val day4a : string list -> int
-val day4b : string list -> int
+type result = int
+
+val parta : string list -> int
+val partb : string list -> int

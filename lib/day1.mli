@@ -1,2 +1,3 @@
-val day1a : string list -> unit
-val day1b : string list -> unit
+type result = unit
+val parta : string list -> unit
+val partb : string list -> unit

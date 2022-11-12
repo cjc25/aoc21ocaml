@@ -2,6 +2,8 @@ open! Core
 
 type action = Forward of int | Down of int | Up of int
 
+type result = int
+
 let line_to_action l =
   let stringpair_to_action action scalestr =
     let scale = Int.of_string scalestr in
@@ -21,7 +23,7 @@ let step2a (horiz, depth) l =
   | Up u -> (horiz, depth - u)
   | Down d -> (horiz, depth + d)
 
-let day2a ls =
+let parta ls =
   let horiz, depth = List.fold ls ~init:(0, 0) ~f:step2a in
   horiz * depth
 
@@ -29,7 +31,7 @@ let sample =
   [ "forward 5"; "down 5"; "forward 8"; "up 3"; "down 8"; "forward 2" ]
 
 let%expect_test "2a sample" =
-  day2a sample |> Int.to_string |> print_endline;
+  parta sample |> Int.to_string |> print_endline;
   [%expect {| 150 |}]
 
 let step2b (horiz, depth, aim) l =
@@ -38,10 +40,10 @@ let step2b (horiz, depth, aim) l =
   | Up u -> (horiz, depth, aim - u)
   | Down d -> (horiz, depth, aim + d)
 
-let day2b ls =
+let partb ls =
   let horiz, depth, _ = List.fold ls ~init:(0, 0, 0) ~f:step2b in
   horiz * depth
 
 let%expect_test "2b sample" =
-  day2b sample |> Int.to_string |> print_endline;
+  partb sample |> Int.to_string |> print_endline;
   [%expect {| 900 |}]

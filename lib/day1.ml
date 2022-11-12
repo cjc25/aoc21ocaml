@@ -1,6 +1,8 @@
 open! Core
 open! Async
 
+type result = unit
+
 let rec fold2 ~init ~f = function
   | a :: b :: tl -> fold2 ~init:(f init a b) ~f (b :: tl)
   | _ -> init
@@ -9,16 +11,16 @@ let count_increases l =
   let f acc a b = if b > a then acc + 1 else acc in
   fold2 ~init:0 ~f l
 
-let day1a ls =
+let parta ls =
   List.map ls ~f:Int.of_string
   |> count_increases |> Int.to_string |> print_endline
 
 let%expect_test "zero for empty" =
-  day1a [];
+  parta [];
   return [%expect "0"]
 
 let%expect_test "sample" =
-  day1a [ "199"; "200"; "208"; "210"; "200"; "207"; "240"; "269"; "260"; "263" ];
+  parta [ "199"; "200"; "208"; "210"; "200"; "207"; "240"; "269"; "260"; "263" ];
   return [%expect "7"]
 
 let rec fold3 ~init ~f = function
@@ -32,6 +34,6 @@ let count_triple_increases l =
   let count_dec acc a b = if a > b then acc + 1 else acc in
   fold3 ~init:[] ~f:add l |> fold2 ~init:0 ~f:count_dec
 
-let day1b ls =
+let partb ls =
   List.map ls ~f:Int.of_string
   |> count_triple_increases |> Int.to_string |> print_endline

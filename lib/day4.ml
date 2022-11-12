@@ -1,5 +1,7 @@
 open Core
 
+type result = int
+
 type entry = { num : int; marked : bool }
 
 let entry_of_tok tok = { num = Int.of_string tok; marked = false }
@@ -59,7 +61,7 @@ let sample =
  2  0 12  3  7
 |}
 
-let day4a ls =
+let parta ls =
   let sections = Input.to_sections ls in
   let draws =
     List.hd_exn sections |> List.hd_exn |> String.split ~on:','
@@ -78,10 +80,10 @@ let day4a ls =
       | _, _ -> failwith "unexpectedly multiple winners!")
 
 let%expect_test "a sample" =
-  day4a sample |> printf "%d";
+  parta sample |> printf "%d";
   [%expect {| 4512 |}]
 
-let day4b ls =
+let partb ls =
   let sections = Input.to_sections ls in
   let draws =
     List.hd_exn sections |> List.hd_exn |> String.split ~on:','
@@ -100,5 +102,5 @@ let day4b ls =
       | remaining, _ -> Continue remaining)
 
 let%expect_test "b sample" =
-  day4b sample |> printf "%d";
+  partb sample |> printf "%d";
   [%expect {| 1924 |}]
