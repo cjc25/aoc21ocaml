@@ -21,7 +21,7 @@ let score_board rep =
         | { num = _; marked = true } -> score
         | { num; marked = false } -> score + num))
 
-(** The error case is when a board has won *)
+(* Returns First of a live board, and Second of a winning board's score *)
 let mark_board (rows, cols) draw =
   let mark_rep rep =
     List.fold_map ~init:false rep ~f:(fun entry_all_ok entries ->
