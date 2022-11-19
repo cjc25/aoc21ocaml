@@ -14,8 +14,8 @@ let to_sections lines =
   in
   List.rev result
 
-let to_tokens line =
-  String.split ~on:' ' line
+let to_tokens ?(on = ' ') line =
+  String.split ~on line
   |> List.filter ~f:(fun tok -> String.is_empty tok |> not)
 
 let split_on_string s ~sep =
