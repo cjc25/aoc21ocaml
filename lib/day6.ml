@@ -7,7 +7,7 @@ let run_array ls ct =
     List.hd_exn ls |> String.split ~on:',' |> List.map ~f:Int.of_string
   in
   let fish = Array.create ~len:9 0 in
-  List.iter inits ~f:(fun i -> Array.set fish i (fish.(i) + 1));
+  List.iter inits ~f:(fun i -> fish.(i) <- fish.(i) + 1);
   for _ = 1 to ct do
     let zeroes = fish.(0) in
     for i = 0 to 7 do
