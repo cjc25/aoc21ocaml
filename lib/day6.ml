@@ -11,10 +11,10 @@ let run_array ls ct =
   for _ = 1 to ct do
     let zeroes = fish.(0) in
     for i = 0 to 7 do
-      Array.set fish i fish.(i + 1)
+      fish.(i) <- fish.(i + 1)
     done;
-    Array.set fish 6 (fish.(6) + zeroes);
-    Array.set fish 8 zeroes
+    fish.(6) <- (fish.(6) + zeroes);
+    fish.(8) <- zeroes
   done;
   Array.fold fish ~init:0 ~f:(fun acc ct -> acc + ct)
 
